@@ -70,11 +70,14 @@ UserSchema.path('hashed_password').validate(function () {
     encryptPassword: To generate a hash with 10 salt rounds of bcrypt
 */
 UserSchema.methods = {
-    authenticate: function (plainText) {
-        bcrypt.compare(plainText, this.hashed_password, (err, isMatch) => {
-            if (err) console.log(`Error in aunthenticating password: ${err}`);
-            return isMatch;
+    authenticate: async function (plainText) {
+        const isMatch = await new Promise(resolve => {
+            bcrypt.compare(plainText, this.hashed_password, (err, isMatch) => {
+                if (err) console.log(`Error in aunthenticating password: ${err}`);
+                resolve(isMatch);
+            });
         });
+        return isMatch;
     },
     encryptPassword: async function () {
         try {
