@@ -2,17 +2,17 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
 const UserSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        trim: true,
-        required: 'Name is required'
-    },
     email: {
         type: String,
         trim: true,
         unique: 'Email already exists',
         match: [/.+\@.+\..+/, 'Please fill a valid email address'],
         required: 'Email is required'
+    },
+    name: {
+        type: String,
+        trim: true,
+        required: 'Name is required'
     },
     created: {
         type: Date,
@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
 // To re-create a virtual async, this method is used: https://github.com/Automattic/mongoose/issues/5762#issuecomment-339965468
 UserSchema
     .virtual('password')
-    .get(function() {
+    .get(function () {
         return this._password;
     })
     .set(function (password) {
@@ -41,9 +41,12 @@ UserSchema
 // This is run before save
 // Hashes password after validation before saving
 UserSchema.pre('save', function preValidate(next) {
-    return this.encryptPassword().then(() => {
-        next();
-    });
+    if (this._password) {
+        return this.encryptPassword(this._password).then(() => {
+            next();
+        });
+    }
+    next();
 });
 
 // Password field validation
@@ -79,17 +82,18 @@ UserSchema.methods = {
         });
         return isMatch;
     },
-    encryptPassword: async function () {
+    encryptPassword: async function (plainPassword) {
         try {
             this.hashed_password = await new Promise(resolve => {
                 bcrypt.genSalt(10, (err, salt) => {
                     if (err) console.log(`Error in creating bcrypt salt: ${err}`);
-                    bcrypt.hash(this.hashed_password, salt, (err, hash) => {
+                    bcrypt.hash(plainPassword, salt, (err, hash) => {
                         if (err) console.log(`Error in hashing password: ${err}`);
                         resolve(hash);
                     })
                 })
             });
+            this._password = '';
         } catch (err) {
             console.log(`Error in encrypting password: ${err}`);
         }
