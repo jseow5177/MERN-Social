@@ -27,12 +27,12 @@ const listByUser = async (req, res, next) => {
         const posts = await Post.find({ postedBy: req.profile._id })
             .populate('comments.postedBy', '_id name')
             .populate('postedBy', '_id name')
-            .sort({ 'createdBy': -1 })
+            .sort('-created')
             .exec();
         return res.status(200).json(posts);
     } catch (err) {
         return res.status(500).json({
-            error: 'Error in retrieving your posts. Please try again later.'
+            error: 'Error in retrieving posts. Please try again later.'
         })
     }
 }
@@ -105,7 +105,7 @@ const remove = async (req, res, next) => {
         return res.status(200).json(req.post);
     } catch (err) {
         return res.status(400).json({
-            error: 'Please try again later'
+            error: 'Failed to delete. Please try again later'
         });
     }
 }
@@ -132,4 +132,21 @@ const unlike = async (req, res, next) => {
     }
 }
 
-export default { listNewsFeed, listByUser, create, postById, photo, isPoster, remove, like, unlike };
+const comment = async (req, res, next) => {
+    const comment = {}
+    comment.text = req.body.comment;
+    comment.postedBy = req.body.userId;
+    try {
+        const result = await Post.findByIdAndUpdate(req.body.postId, { $push: { comments: comment } }, { new: true })
+            .populate('comments.postedBy', '_id name')
+            .populate('postedBy', '_id name')
+            .exec();
+        return res.status(200).json(result); // Sends back updated post with new comment
+    } catch (err) {
+        return res.status(400).json({
+            error: 'Error in posting comment'
+        });
+    }
+}
+
+export default { listNewsFeed, listByUser, create, postById, photo, isPoster, remove, like, unlike, comment };
