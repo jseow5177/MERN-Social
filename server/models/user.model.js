@@ -2,17 +2,26 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
 const UserSchema = new mongoose.Schema({
+    photo: {
+        data: Buffer, // Image file will be stored as binary data
+        contentType: String
+    },
     email: {
         type: String,
         trim: true,
         unique: 'Email already exists',
         match: [/.+\@.+\..+/, 'Please fill a valid email address'],
-        required: 'Email is required'
+        required: [true, 'Email is required']
     },
     name: {
         type: String,
         trim: true,
-        required: 'Name is required'
+        required: 'Name is required',
+        maxlength: [10, 'Name length cannot exceed 50']
+    },
+    about: {
+        type: String,
+        trim: true
     },
     created: {
         type: Date,
@@ -21,8 +30,16 @@ const UserSchema = new mongoose.Schema({
     updated: Date,
     hashed_password: {
         type: String,
-        required: 'Password is required'
-    }
+        required: [true, 'Password is required']
+    },
+    following: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+    }],
+    followers: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+    }]
 });
 
 // Virtual fields are not saved into the db
@@ -100,4 +117,4 @@ UserSchema.methods = {
     }
 }
 
-export default mongoose.model('user', UserSchema);
+export default mongoose.model('User', UserSchema);
