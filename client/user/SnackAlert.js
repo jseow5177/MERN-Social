@@ -8,7 +8,7 @@ function SnackAlert(props) {
             anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
             open={props.open}
             onClose={props.handleCloseSnack}
-            autoHideDuration={6000}
+            autoHideDuration={5000}
         >
             <Alert onClose={props.handleCloseSnack} severity={props.severity}>
                 {props.message}
