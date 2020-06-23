@@ -5,6 +5,18 @@ import userController from '../controllers/user.controller';
 
 const router = express.Router();
 
+router.route('/api/posts/comment')
+    .put(authController.requireSignin, postController.comment);
+
+router.route('/api/posts/like')
+    .put(authController.requireSignin, postController.like);
+
+router.route('/api/posts/unlike')
+    .put(authController.requireSignin, postController.unlike);
+
+router.route('/api/posts/:postId')
+    .delete(authController.requireSignin, postController.isPoster, postController.remove);
+
 router.route('/api/posts/new/:userId')
     .post(authController.requireSignin, postController.create)
 
