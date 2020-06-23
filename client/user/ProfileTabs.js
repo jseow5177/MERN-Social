@@ -40,7 +40,7 @@ function ProfileTabs(props) {
                     <Tab label={`Following (${followingCount})`} />
                 </ Tabs>
             </AppBar>
-            {tab === 0 && <TabContainer><PostList posts={props.posts} removePost={props.removePost}/></TabContainer>}
+            {tab === 0 && <TabContainer><PostList posts={props.posts} removePost={props.removePost} setSuccess={props.setSuccess} setError={props.setError} /></TabContainer>}
             {tab === 1 && <TabContainer><FollowGrid people={props.user.followers} /></TabContainer>}
             {tab === 2 && <TabContainer><FollowGrid people={props.user.following} /></TabContainer>}
         </div>
@@ -50,7 +50,9 @@ function ProfileTabs(props) {
 ProfileTabs.propTypes = {
     user: PropTypes.object.isRequired,
     posts: PropTypes.array.isRequired,
-    removePost: PropTypes.func.isRequired
+    removePost: PropTypes.func.isRequired,
+    setSuccess: PropTypes.func.isRequired,
+    setError: PropTypes.func.isRequired
 }
 
 const TabContainer = props => {
