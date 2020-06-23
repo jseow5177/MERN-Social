@@ -4,6 +4,23 @@ import authController from '../controllers/auth.controller';
 
 const router = express.Router();
 
+router.route('/api/users/notfollow/:userId')
+    .get(authController.requireSignin, userController.findPeople);
+
+router.route('/api/users/follow')
+    .put(authController.requireSignin, userController.addFollowing, userController.addFollower);
+
+router.route('/api/users/unfollow')
+    .put(authController.requireSignin, userController.removeFollowing, userController.removeFollower);
+
+// First, checks if user has a photo
+// If no, calls next() and get the default photo
+router.route('/api/users/photo/:userId')
+    .get(userController.photo, userController.defaultPhoto);
+
+router.route('/api/users/defaultPhoto')
+    .get(userController.defaultPhoto);
+
 router.route('/api/users')
     .get(userController.list)
     .post(userController.create)
