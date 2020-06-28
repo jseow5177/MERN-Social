@@ -1,21 +1,29 @@
 import Post from '../models/post.model';
-import errorHandler from '../helpers/dbErrorHandler';
 import formidable from 'formidable';
 import fs from 'fs';
 
 const listNewsFeed = async (req, res, next) => {
+
     const following = req.profile.following;
     following.push(req.profile._id);
 
+    const lastPostId = req.params.lastPostId;
+
+    const validId = lastPostId === '-1'
+
+    const query = validId ? { postedBy: { $in: following } } : { postedBy: { $in: following }, _id: { $lt: lastPostId } };
+
     try {
         // Find posts posted by the user and his/her followers
-        const posts = await Post.find({ postedBy: { $in: following } })
+        const posts = await Post.find(query)
+            .sort({ _id: -1 })
+            .limit(5)
             .populate('comments.postedBy', '_id name') // Users who commented on the post
             .populate('postedBy', '_id name') // User who posted the post
-            .sort('-created') // Sort by descending order
             .exec();
         return res.status(200).json(posts);
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             error: 'Error in retrieving all posts. Please try again later.'
         });
@@ -23,8 +31,17 @@ const listNewsFeed = async (req, res, next) => {
 }
 
 const listByUser = async (req, res, next) => {
+
+    const lastPostId = req.params.lastPostId;
+
+    const validId = lastPostId === '-1'
+
+    const query = validId ? { postedBy: req.profile._id } : { postedBy: req.profile._id, _id: { $lt: lastPostId } };
+
     try {
-        const posts = await Post.find({ postedBy: req.profile._id })
+        const posts = await Post.find(query)
+            .sort({ _id: -1 })
+            .limit(5)
             .populate('comments.postedBy', '_id name')
             .populate('postedBy', '_id name')
             .sort('-created')
@@ -149,4 +166,20 @@ const comment = async (req, res, next) => {
     }
 }
 
-export default { listNewsFeed, listByUser, create, postById, photo, isPoster, remove, like, unlike, comment };
+
+const uncomment = async (req, res, next) => {
+    const comment = req.body.comment;
+    try {
+        const result = await Post.findByIdAndUpdate(req.body.postId, { $pull: { comments: { _id: comment._id } } }, { new: true })
+            .populate('comments.postedBy', '_id name')
+            .populate('postedBy', '_id name')
+            .exec();
+        return res.status(200).json(result);
+    } catch (err) {
+        return res.status(400).json({
+            error: 'Error in deleting comment'
+        });
+    }
+}
+
+export default { listNewsFeed, listByUser, create, postById, photo, isPoster, remove, like, unlike, comment, uncomment };
