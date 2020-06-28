@@ -5,6 +5,9 @@ import userController from '../controllers/user.controller';
 
 const router = express.Router();
 
+router.route('/api/posts/uncomment')
+    .delete(authController.requireSignin, postController.uncomment);
+
 router.route('/api/posts/comment')
     .put(authController.requireSignin, postController.comment);
 
@@ -20,10 +23,10 @@ router.route('/api/posts/:postId')
 router.route('/api/posts/new/:userId')
     .post(authController.requireSignin, postController.create)
 
-router.route('/api/posts/feed/:userId')
+router.route('/api/posts/feed/:userId/:lastPostId')
     .get(authController.requireSignin, postController.listNewsFeed)
 
-router.route('/api/posts/by/:userId')
+router.route('/api/posts/by/:userId/:lastPostId')
     .get(authController.requireSignin, postController.listByUser)
 
 router.route('/api/posts/photo/:postId')
