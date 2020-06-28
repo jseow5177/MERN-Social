@@ -1,4 +1,5 @@
 import User from '../models/user.model';
+import Post from '../models/post.model';
 import extend from 'lodash/extend';
 import errorHandler from '../helpers/dbErrorHandler'; // Helper to respond to route requests when error occurs
 import formidable from 'formidable'; // To parse form data and file uploads
@@ -95,9 +96,13 @@ const update = async (req, res, next) => {
 const remove = async (req, res, next) => {
     try {
         const user = req.profile;
+        await Post.updateMany({}, { $pull: { "comments": { "postedBy": user._id } } }); // Remove comments posted by user
+        await Post.updateMany({}, { $pull: { "likes": user._id } }); // Remove likes by user
+        await Post.deleteMany({ "postedBy": user._id });
         await user.remove();
         return res.status(200).json({ message: 'User successfully removed' });
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             error: 'Could not delete. Please try again later.'
         })
