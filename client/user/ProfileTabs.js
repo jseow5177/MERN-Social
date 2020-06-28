@@ -26,7 +26,6 @@ function ProfileTabs(props) {
         }
     }, [props.user.following]);
 
-
     const handleTabChange = (e, newTab) => {
         setTab(newTab);
     }
@@ -40,7 +39,20 @@ function ProfileTabs(props) {
                     <Tab label={`Following (${followingCount})`} />
                 </ Tabs>
             </AppBar>
-            {tab === 0 && <TabContainer><PostList posts={props.posts} removePost={props.removePost} setSuccess={props.setSuccess} setError={props.setError} /></TabContainer>}
+            {tab === 0 &&
+                <TabContainer>
+                    <PostList
+                        posts={props.posts}
+                        removePost={props.removePost}
+                        setSuccess={props.setSuccess}
+                        setError={props.setError}
+                        getPosts={props.getPosts}
+                        isEndOfScroll={props.isEndOfScroll}
+                        //
+                        userId={props.userId}
+                    />
+                </TabContainer>
+            }
             {tab === 1 && <TabContainer><FollowGrid people={props.user.followers} /></TabContainer>}
             {tab === 2 && <TabContainer><FollowGrid people={props.user.following} /></TabContainer>}
         </div>
@@ -52,7 +64,10 @@ ProfileTabs.propTypes = {
     posts: PropTypes.array.isRequired,
     removePost: PropTypes.func.isRequired,
     setSuccess: PropTypes.func.isRequired,
-    setError: PropTypes.func.isRequired
+    setError: PropTypes.func.isRequired,
+    getPosts: PropTypes.func.isRequired,
+    user: PropTypes.object.isRequired,
+    userId: PropTypes.string.isRequired
 }
 
 const TabContainer = props => {
