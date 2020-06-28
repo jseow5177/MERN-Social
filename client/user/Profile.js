@@ -19,7 +19,7 @@ import ProfileTabs from './ProfileTabs';
 import DeleteUser from './DeleteUser';
 import FollowProfileButton from './FollowProfileButton';
 import auth from '../auth/auth-helper';
-import { read } from './api-user';
+import { read, follow } from './api-user';
 import { listByUser } from '../post/api-post';
 
 function Profile({ match }) {
@@ -28,10 +28,12 @@ function Profile({ match }) {
 
     const [values, setValues] = useState({
         user: {},
-        error: '',
         following: false,
-        open: false
     });
+
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [isEndOfScroll, setIsEndOfScroll] = useState(false);
 
     const [posts, setPosts] = useState([]);
 
@@ -42,12 +44,13 @@ function Profile({ match }) {
         const signal = abortController.signal;
         read({ userId: match.params.userId }, credentials, signal).then(data => {
             if (data && data.error) {
-                setValues({ ...values, error: data.error, open: true });
+                setError(data.error);
             } else {
                 // some() returns true once a match is found
                 const following = data.followers.some(follower => follower._id === credentials.user._id);
-                setValues({ ...values, user: data, following: following, error: '', open: false });
-                loadPosts(data._id); // Load posts by user
+                setValues({ ...values, user: data, following: following });
+                setError('');
+                loadPosts();
             }
         });
 
@@ -56,28 +59,33 @@ function Profile({ match }) {
         }
     }, [match.params.userId]);
 
-    const loadPosts = userId => {
-        listByUser({ userId: userId }, credentials).then(data => {
+    const loadPosts = () => {
+
+        const lastPost = posts[posts.length - 1];
+        const lastPostId = lastPost ? lastPost._id : -1;
+
+        listByUser({ userId: match.params.userId }, credentials, lastPostId).then(data => {
             if (data && data.error) {
-                setValues({ ...values, error: data.error, open: true });
+                setError(data.error);
             } else {
-                setPosts(data);
+                if (data.length === 0) setIsEndOfScroll(true);
+                setError('');
+                setPosts(posts => [...posts, ...data]);
             }
         });
+
     }
 
     const clickFollowButton = callApi => {
         callApi({ userId: credentials.user._id }, credentials, values.user._id).then(data => {
             if (data && data.error) {
-                setValues({ ...values, error: data.error, open: true });
+                setError(data.error);
             } else {
-                setValues({ ...values, user: data, following: !values.following, error: '', open: false });
+                setError('');
+                setValues({ ...values, user: data, following: !values.following });
+                setSuccess(callApi === follow ? `Following ${values.user.name}` : `Unfollowed ${values.user.name}`);
             }
         });
-    }
-
-    const handleCloseSnack = () => {
-        setValues({ ...values, open: false, error: '' });
     }
 
     const removePost = post => {
@@ -129,9 +137,25 @@ function Profile({ match }) {
                     user={values.user}
                     posts={posts}
                     removePost={removePost}
+                    setSuccess={setSuccess}
+                    setError={setError}
+                    getPosts={loadPosts}
+                    isEndOfScroll={isEndOfScroll}
+                    userId={match.params.userId}
                 />
             </Paper>
-            <SnackAlert open={values.open} message={values.error} handleCloseSnack={handleCloseSnack} severity='error' />
+            <SnackAlert
+                open={error !== ''}
+                handleCloseSnack={() => setError('')}
+                severity='error'
+                message={error}
+            />
+            <SnackAlert
+                open={success !== ''}
+                handleCloseSnack={() => setSuccess('')}
+                severity='success'
+                message={success}
+            />
         </Grid>
     )
 }
@@ -139,14 +163,14 @@ function Profile({ match }) {
 const useStyles = makeStyles(theme => ({
     root: {
         padding: theme.spacing(2),
-        width: 800
+        width: 600
     },
     title: {
         padding: theme.spacing(2),
         color: theme.palette.protectedTitle,
     },
     grid: {
-        marginTop: theme.spacing(15)
+        margin: theme.spacing(15, 0, 6)
     },
     error: {
         display: 'flex'
