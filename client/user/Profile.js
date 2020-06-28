@@ -117,7 +117,7 @@ function Profile({ match }) {
                                                 <Edit />
                                             </IconButton>
                                         </Link>
-                                        <DeleteUser userId={values.user._id} setValues={setValues} />
+                                        <DeleteUser userId={values.user._id} setValues={setValues} setError={setError} />
                                     </ListItemSecondaryAction>
                                 )
                                 : (

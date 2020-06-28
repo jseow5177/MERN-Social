@@ -9,13 +9,12 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 
-
 import { Redirect } from 'react-router-dom';
 
 import auth from '../auth/auth-helper';
 import { remove } from './api-user';
 
-function DeleteUser({ userId }) {
+function DeleteUser({ userId, setValues, setError }) {
 
     const [open, setOpen] = useState(false);
     const [redirect, setRedirect] = useState(false);
@@ -34,7 +33,9 @@ function DeleteUser({ userId }) {
         remove({ userId: userId }, credentials).then(data => {
             if (data && data.error) {
                 setError(data.error);
+                setOpen(false);
             } else {
+                setError('');
                 closeDialog();
                 auth.clearJwt(() => setRedirect(true));
             }
@@ -63,11 +64,13 @@ function DeleteUser({ userId }) {
                 </DialogActions>
             </Dialog>
         </span>
+
     )
 }
 
 DeleteUser.propTypes = {
-    userId: PropTypes.string.isRequired
+    userId: PropTypes.string.isRequired,
+    setError: PropTypes.func.isRequired,
 }
 
 export default DeleteUser;
