@@ -3,7 +3,7 @@
 A Facebook-like social media application built with the MERN (MongoDB, Express, React, Node) stack.
 
 ## Project Demo
-
+![App demo](/app-demo.gif)
 
 ## Tech Stacks
 <ul>
