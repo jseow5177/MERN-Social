@@ -25,9 +25,7 @@ function PostList(props) {
                     <ContentLoader />
                 </div>}
             hasMore={!props.isEndOfScroll}
-            endMessage={
-                props.posts.length !== 0 && <Typography variant='body1' className={classes.endOfPageText}>You scrolled a lot!</Typography>
-            }
+            endMessage=''
             style={{ padding: '1rem' }}
         >
             {
