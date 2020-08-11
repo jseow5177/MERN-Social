@@ -21,8 +21,6 @@ function Newsfeed() {
 
     const getPosts = signal => {
 
-        console.log('newsfeed');
-
         const lastPost = posts[posts.length - 1];
 
         const lastPostId = lastPost ? lastPost._id : -1;
